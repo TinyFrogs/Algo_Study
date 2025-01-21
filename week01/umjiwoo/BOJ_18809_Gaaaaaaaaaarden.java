@@ -2,12 +2,10 @@ package umjiwoo;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class BOJ_18809_Gaaaaaaaaaarden{
+    static int N,M;
     static int[][] map;
     static int[] dr={-1,1,0,0};
     static int[] dc={0,0,-1,1};
@@ -15,13 +13,24 @@ public class BOJ_18809_Gaaaaaaaaaarden{
     static List<List<int[]>> selectedLocation = new ArrayList<>();
     static List<int[]> finalSelectedLocation;
 
+    static class Fertilizer{
+        int r,c,fType, t;
+
+        public Fertilizer(int row, int col, int fertilizer_type, int time){
+            this.r=row;
+            this.c=col;
+            this.fType=fertilizer_type;
+            this.t=time;
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = null;
 
         st = new StringTokenizer(br.readLine());
-        int N = Integer.parseInt(st.nextToken());
-        int M = Integer.parseInt(st.nextToken());
+        N = Integer.parseInt(st.nextToken());
+        M = Integer.parseInt(st.nextToken());
         int G = Integer.parseInt(st.nextToken());
         int R = Integer.parseInt(st.nextToken());
 
@@ -53,7 +62,7 @@ public class BOJ_18809_Gaaaaaaaaaarden{
             finalSelectedLocation=new ArrayList<>();
             permutation(selected,new int[selected.size()], 0, G, R);
             for(int[] fSelected : finalSelectedLocation){
-                System.out.println(Arrays.toString(fSelected));
+                countFlower(fSelected);
             }
         }
     }
@@ -78,17 +87,64 @@ public class BOJ_18809_Gaaaaaaaaaarden{
         }
 
         if (G > 0) {
-            perm[idx] = 1; // G 배양액
+            perm[idx] = 3; // G 배양액
             permutation(selected, perm, idx + 1, G - 1, R);
         }
         if (R > 0) {
-            perm[idx] = 2; // R 배양액
+            perm[idx] = 4; // R 배양액
             permutation(selected, perm, idx + 1, G, R - 1);
         }
     }
 
     // 2. 뿌린 후 확산, G,R 배양액 동시 확산 시 피는 꽃 개수 계산
-    public static void countFlower(){
+    public static void countFlower(int[] selected){
+        int[][][] copiedMap=copyMap(map);
 
+        Queue<Fertilizer> fQueue=new ArrayDeque<>();
+        for(List<int[]> sLocation:selectedLocation){
+            for(int i=0;i<sLocation.size();i++) {
+                Fertilizer fertilizer = new Fertilizer(sLocation.get(i)[0], sLocation.get(i)[1], selected[i], 0);
+                fQueue.offer(fertilizer);
+
+                copiedMap[sLocation.get(i)[0]][sLocation.get(i)[1]][0]=selected[i];
+                copiedMap[sLocation.get(i)[0]][sLocation.get(i)[1]][1]=0;
+            }
+        }
+
+        while(!fQueue.isEmpty()){
+            Fertilizer f=fQueue.poll();
+            int r=f.r;
+            int c=f.c;
+            int type=f.fType;
+            int t=f.t;
+
+            for(int d=0;d<4;d++) {
+                int nr = r + dr[d];
+                int nc = c + dc[d];
+
+                if (nr < 0 || nr >= N || nc < 0 || nc >= N) continue; // map 영역 밖
+                if(copiedMap[nr][nc][0]==0 || copiedMap[nr][nc][0]==5) continue; // 호수이거나 꽃인 영역
+                if(copiedMap[nr][nc][0]==type) continue; // 현재 배양액 상태와 퍼지려는 곳의 상태가 같음
+
+                if(copiedMap[nr][nc][0]!=type && copiedMap[nr][nc][1]==t){
+                    copiedMap[nr][nc][0]=type;
+                }
+            }
+        }
+        for(int[][] row: copiedMap){
+            for(int[] r:row){
+                r[1]=r[1]+1;
+            }
+        }
+    }
+
+    public static int[][][] copyMap(int[][] map){
+        int[][][] returnMap=new int[N][M][];
+        for (int i=0;i<N;i++) {
+            for (int j=0;j<M;j++) {
+                returnMap[i][j]=new int[]{map[i][j],0};
+            }
+        }
+        return returnMap;
     }
 }
