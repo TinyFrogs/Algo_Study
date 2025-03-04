@@ -42,7 +42,19 @@ public class BOJ_2666_벽장문의이동_완탐 {
 	static void solve(int count){
 		if(count == M){
 			int oper = operation();
-			result = Math.min(result, oper);
+			if(result > oper) {
+				result = oper;
+				if (result == 5) {
+					for (boolean v : visited) {
+						if (v)
+							System.out.print(" f1");
+						else
+							System.out.print(" f2");
+					}
+					System.out.println();
+				}
+			}
+
 
 			return;
 		}
